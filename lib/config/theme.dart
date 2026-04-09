@@ -9,6 +9,8 @@ abstract final class AppTheme {
   static const Color success = Color(0xFF38A169);
   static const Color warning = Color(0xFFD69E2E);
   static const Color danger = Color(0xFFE53E3E);
+  /// College log cards (left accent).
+  static const Color collegePurple = Color(0xFF7C3AED);
 
   static const Color background = Color(0xFFF7F8FA);
   static const Color cardSurface = Color(0xFFFFFFFF);

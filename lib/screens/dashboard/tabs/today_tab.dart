@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../../config/theme.dart';
 import '../../../models/isar/isar_collections.dart';
+import '../../../providers/college_log_provider.dart';
 import '../../../providers/storage_provider.dart';
 import '../../../providers/today_remote_provider.dart';
 import '../../../storage/storage_interface.dart';
@@ -50,6 +51,8 @@ class _TodayTabState extends ConsumerState<TodayTab> {
             ref.invalidate(parentDisplayNameProvider);
             if (sid != null) {
               ref.invalidate(todayRemoteProvider(sid));
+              ref.invalidate(collegeLogTodayProvider(sid));
+              ref.invalidate(collegeLogWeekProvider(sid));
               await ref.read(syncServiceProvider).pullFromServer(sid);
             }
             if (context.mounted) {
@@ -96,6 +99,8 @@ class _TodayTabState extends ConsumerState<TodayTab> {
               ),
               const SizedBox(height: AppTheme.sectionGap),
               _StreakCard(storage: storage, studentId: sid, dash: dash),
+              const SizedBox(height: AppTheme.sectionGap),
+              _CollegeLogTodayCard(studentId: sid),
               const SizedBox(height: AppTheme.sectionGap),
               _StatsRow(storage: storage, studentId: sid, dash: dash),
               const SizedBox(height: AppTheme.sectionGap),
@@ -404,6 +409,140 @@ IconData _iconForActivity(ActivityVisualKind k) {
       return Icons.menu_book_outlined;
     case ActivityVisualKind.other:
       return Icons.circle_outlined;
+  }
+}
+
+class _CollegeLogTodayCard extends ConsumerWidget {
+  const _CollegeLogTodayCard({required this.studentId});
+
+  final String? studentId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (studentId == null) {
+      return SomiCard(
+        leftBorderColor: AppTheme.collegePurple,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SomiHeader(
+              title: 'Iroju college lo 🏫',
+              titleTelugu: true,
+            ),
+            TenglishText(
+              'College log student link ayyaka kanipistundi',
+              style: AppTheme.teluguStyle(fontSize: 15, color: AppTheme.textSecondary),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final async = ref.watch(collegeLogTodayProvider(studentId!));
+    return SomiCard(
+      leftBorderColor: AppTheme.collegePurple,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SomiHeader(
+            title: 'Iroju college lo 🏫',
+            titleTelugu: true,
+          ),
+          async.when(
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (err, _) => TenglishText(
+              'College log ippudu load avvale. Refresh try cheyandi.',
+              style: AppTheme.teluguStyle(
+                fontSize: 15,
+                color: AppTheme.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            data: (data) {
+              if (data.subjects.isEmpty) {
+                return TenglishText(
+                  'Student inkaa update cheyyaledu',
+                  style: AppTheme.teluguStyle(
+                    fontSize: 15,
+                    color: AppTheme.textSecondary.withValues(alpha: 0.88),
+                    fontWeight: FontWeight.w500,
+                  ),
+                );
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ...data.subjects.map((s) => _CollegeLogSubjectBlock(subject: s)),
+                  if (data.updatedAt != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      'Updated at ${DateFormat.jm().format(data.updatedAt!.toLocal())}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppTheme.textSecondary,
+                          ),
+                    ),
+                  ],
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CollegeLogSubjectBlock extends StatelessWidget {
+  const _CollegeLogSubjectBlock({required this.subject});
+
+  final CollegeLogSubject subject;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            subject.subjectName,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          if (subject.topics.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: subject.topics.map((t) {
+                return Chip(
+                  label: Text(t),
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                );
+              }).toList(),
+            ),
+          ],
+          if (subject.homework != null && subject.homework!.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              '📝 HW: ${subject.homework}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+          if (subject.teacherName != null && subject.teacherName!.trim().isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              subject.teacherName!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
 

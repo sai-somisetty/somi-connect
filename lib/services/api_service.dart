@@ -208,6 +208,25 @@ class ApiService {
     return [];
   }
 
+  /// `GET /parent/college-log/{student_id}/today`
+  Future<Map<String, dynamic>> getCollegeLogToday(String studentId) async {
+    final res = await _dio.get<Map<String, dynamic>>(
+      '/parent/college-log/$studentId/today',
+    );
+    if (res.statusCode != 200 || res.data == null) return {};
+    return Map<String, dynamic>.from(res.data!);
+  }
+
+  /// `GET /parent/college-log/{student_id}?days=7`
+  Future<Map<String, dynamic>> getCollegeLogWeek(String studentId, {int days = 7}) async {
+    final res = await _dio.get<Map<String, dynamic>>(
+      '/parent/college-log/$studentId',
+      queryParameters: {'days': days},
+    );
+    if (res.statusCode != 200 || res.data == null) return {};
+    return Map<String, dynamic>.from(res.data!);
+  }
+
   Future<List<dynamic>> getNudges() async {
     final res = await _dio.get<Map<String, dynamic>>('/parent/nudges');
     final list = res.data?['nudges'] ?? res.data?['items'];

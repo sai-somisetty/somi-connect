@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../config/theme.dart';
 import '../../../models/isar/isar_collections.dart';
+import '../../../providers/college_log_provider.dart';
 import '../../../providers/mirror_provider.dart';
 import '../../../providers/storage_provider.dart';
 import '../../../providers/selected_student_provider.dart';
@@ -92,7 +94,178 @@ class ProgressTab extends ConsumerWidget {
               )),
         if (sid != null) ...[
           const SizedBox(height: AppTheme.sectionGap),
+          _CollegeLogWeekSection(studentId: sid),
+          const SizedBox(height: AppTheme.sectionGap),
           _CollegeMirrorSection(studentId: sid),
+        ],
+      ],
+    );
+  }
+}
+
+String _formatCollegeLogDate(String logDate) {
+  final normalized = logDate.length >= 10 ? logDate.substring(0, 10) : logDate;
+  final d = DateTime.tryParse(normalized);
+  if (d != null) {
+    return DateFormat.yMMMEd().format(d);
+  }
+  return logDate;
+}
+
+class _CollegeLogWeekSection extends ConsumerWidget {
+  const _CollegeLogWeekSection({required this.studentId});
+
+  final String studentId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(collegeLogWeekProvider(studentId));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SomiHeader(
+          title: "This week's college log",
+          titleTelugu: false,
+        ),
+        async.when(
+          loading: () => const SomiCard(
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          ),
+          error: (err, _) => SomiCard(
+            child: TenglishText(
+              'College log load avvale',
+              style: AppTheme.teluguStyle(color: AppTheme.textSecondary),
+            ),
+          ),
+          data: (days) {
+            if (days.isEmpty) {
+              return SomiCard(
+                child: TenglishText(
+                  'Ee week college log inkaa levu',
+                  style: AppTheme.teluguStyle(fontSize: 15, color: AppTheme.textSecondary),
+                ),
+              );
+            }
+            return SomiCard(
+              child: Column(
+                children: [
+                  for (var i = 0; i < days.length; i++)
+                    _CollegeLogDayExpansion(
+                      day: days[i],
+                      initiallyExpanded: i == 0 && days[i].subjects.isNotEmpty,
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _CollegeLogDayExpansion extends StatelessWidget {
+  const _CollegeLogDayExpansion({
+    required this.day,
+    this.initiallyExpanded = false,
+  });
+
+  final CollegeLogDayEntry day;
+  final bool initiallyExpanded;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = _formatCollegeLogDate(day.logDate);
+    final hasContent = day.subjects.isNotEmpty;
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        initiallyExpanded: initiallyExpanded,
+        title: Text(
+          title,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        subtitle: hasContent
+            ? Text(
+                '${day.subjects.length} subject${day.subjects.length == 1 ? '' : 's'}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
+              )
+            : Text(
+                'No subjects logged',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
+              ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (!hasContent)
+                  Text(
+                    'Student inkaa update cheyyaledu',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
+                  )
+                else
+                  ...day.subjects.map(
+                    (s) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _CollegeLogDaySubject(subject: s),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CollegeLogDaySubject extends StatelessWidget {
+  const _CollegeLogDaySubject({required this.subject});
+
+  final CollegeLogSubject subject;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          subject.subjectName,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        if (subject.topics.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: subject.topics.map((t) {
+              return Chip(
+                label: Text(t),
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+              );
+            }).toList(),
+          ),
+        ],
+        if (subject.homework != null && subject.homework!.trim().isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text('📝 HW: ${subject.homework}', style: Theme.of(context).textTheme.bodySmall),
+        ],
+        if (subject.teacherName != null && subject.teacherName!.trim().isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(
+            subject.teacherName!,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
+          ),
         ],
       ],
     );
