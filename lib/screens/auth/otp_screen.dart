@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../l10n/app_strings.dart';
 import '../../providers/language_provider.dart';
 import '../../services/auth_service.dart';
+import '../../widgets/widgets.dart';
 
 /// Six short underlines along the bottom of the input (one slot per digit).
 class _OtpSixSlotUnderlineBorder extends InputBorder {
@@ -138,20 +139,39 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextField(
-                controller: _emailCtrl,
-                keyboardType: TextInputType.emailAddress,
-                autofillHints: const [AutofillHints.email],
-                decoration: InputDecoration(
-                  labelText: AppStrings.emailHint(lang),
+              if (lang == AppLanguage.telugu)
+                const TenglishText(
+                  'Mee account ki OTP pampistham. Email correct ga enter cheyandi.',
+                )
+              else
+                Text(
+                  'We will email you a one-time code. Please use a valid address.',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              const SizedBox(height: 24),
+              SomiCard(
+                leftBorderColor: scheme.primary,
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextField(
+                      controller: _emailCtrl,
+                      keyboardType: TextInputType.emailAddress,
+                      autofillHints: const [AutofillHints.email],
+                      decoration: InputDecoration(
+                        labelText: AppStrings.emailHint(lang),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SomiButton(
+                      label: AppStrings.sendOtp(lang),
+                      onPressed: _loading ? null : _sendOtp,
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _loading ? null : _sendOtp,
-                child: Text(AppStrings.sendOtp(lang)),
-              ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
               Text(
                 AppStrings.otpHint(lang),
                 style: Theme.of(context).textTheme.titleMedium,
@@ -163,11 +183,10 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
                 maxLength: 6,
-                style: const TextStyle(
-                  fontSize: 32,
-                  letterSpacing: 24,
-                  height: 1.2,
-                ),
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                      letterSpacing: 20,
+                      height: 1.2,
+                    ),
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
                 ],
@@ -188,15 +207,19 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
               ),
               if (_error != null) ...[
                 const SizedBox(height: 16),
-                Text(
-                  _error!,
-                  style: TextStyle(color: scheme.error),
+                SomiCard(
+                  leftBorderColor: scheme.error,
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    _error!,
+                    style: TextStyle(color: scheme.error, fontSize: 15),
+                  ),
                 ),
               ],
               const SizedBox(height: 24),
-              ElevatedButton(
+              SomiButton(
+                label: AppStrings.verify(lang),
                 onPressed: _loading ? null : _verify,
-                child: Text(AppStrings.verify(lang)),
               ),
             ],
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../l10n/app_strings.dart';
 import '../../providers/storage_provider.dart';
 import '../../storage/storage_interface.dart';
@@ -8,6 +9,7 @@ import '../../providers/language_provider.dart';
 import '../../providers/selected_student_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/sync_service.dart';
+import '../../widgets/widgets.dart';
 
 class ProfileSetupScreen extends ConsumerStatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -89,6 +91,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   @override
   Widget build(BuildContext context) {
     final lang = ref.watch(languageProvider);
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: Text(AppStrings.continueDashboard(lang))),
@@ -98,96 +101,123 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextField(
-                controller: _nameCtrl,
-                decoration: InputDecoration(labelText: AppStrings.name(lang)),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _phoneCtrl,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(labelText: AppStrings.phoneOptional(lang)),
-              ),
-              const SizedBox(height: 16),
-              Text(AppStrings.language(lang)),
-              SegmentedButton<AppLanguage>(
-                segments: const [
-                  ButtonSegment(value: AppLanguage.telugu, label: Text('తెలుగు')),
-                  ButtonSegment(value: AppLanguage.english, label: Text('English')),
-                ],
-                selected: {lang},
-                onSelectionChanged: (s) {
-                  ref.read(languageProvider.notifier).state = s.first;
-                },
-              ),
-              const SizedBox(height: 24),
-              Text(
-                AppStrings.linkChild(lang),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _studentEmailCtrl,
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(labelText: AppStrings.studentEmail(lang)),
-              ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _relationship,
-                decoration: InputDecoration(labelText: AppStrings.relationship(lang)),
-                items: [
-                  DropdownMenuItem(value: 'father', child: Text(lang == AppLanguage.telugu ? 'Tandr' : 'Father')),
-                  DropdownMenuItem(value: 'mother', child: Text(lang == AppLanguage.telugu ? 'Talli' : 'Mother')),
-                  DropdownMenuItem(value: 'guardian', child: Text(lang == AppLanguage.telugu ? 'Guardian' : 'Guardian')),
-                ],
-                onChanged: (v) => setState(() => _relationship = v ?? 'father'),
-              ),
-              const SizedBox(height: 12),
-              OutlinedButton(
-                onPressed: _loading
-                    ? null
-                    : () async {
-                        try {
-                          final sid = await ref.read(authServiceProvider).linkStudent(
-                                studentEmail: _studentEmailCtrl.text.trim(),
-                                relationship: _relationship,
-                              );
-                          if (sid != null && sid.isNotEmpty) {
-                            ref.read(selectedStudentIdProvider.notifier).state = sid;
-                          }
-                          if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(AppStrings.link(lang))),
-                          );
-                        } catch (e) {
-                          if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(e.toString())),
-                          );
-                        }
+              SomiCard(
+                leftBorderColor: scheme.primary,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextField(
+                      controller: _nameCtrl,
+                      decoration: InputDecoration(labelText: AppStrings.name(lang)),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _phoneCtrl,
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(labelText: AppStrings.phoneOptional(lang)),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      AppStrings.language(lang),
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    SegmentedButton<AppLanguage>(
+                      segments: const [
+                        ButtonSegment(value: AppLanguage.telugu, label: Text('తెలుగు')),
+                        ButtonSegment(value: AppLanguage.english, label: Text('English')),
+                      ],
+                      selected: {lang},
+                      onSelectionChanged: (s) {
+                        ref.read(languageProvider.notifier).state = s.first;
                       },
-                child: Text(AppStrings.link(lang)),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 24),
-              TextField(
-                controller: _pinCtrl,
-                keyboardType: TextInputType.number,
-                obscureText: true,
-                maxLength: 6,
-                decoration: InputDecoration(
-                  labelText: AppStrings.setExamPin(lang),
-                  counterText: '',
+              const SizedBox(height: 20),
+              SomiCard(
+                leftBorderColor: scheme.secondary,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      AppStrings.linkChild(lang),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _studentEmailCtrl,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(labelText: AppStrings.studentEmail(lang)),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: _relationship,
+                      decoration: InputDecoration(labelText: AppStrings.relationship(lang)),
+                      items: [
+                        DropdownMenuItem(value: 'father', child: Text(lang == AppLanguage.telugu ? 'Thandri' : 'Father')),
+                        DropdownMenuItem(value: 'mother', child: Text(lang == AppLanguage.telugu ? 'Thalli' : 'Mother')),
+                        DropdownMenuItem(value: 'guardian', child: Text(lang == AppLanguage.telugu ? 'Guardian' : 'Guardian')),
+                      ],
+                      onChanged: (v) => setState(() => _relationship = v ?? 'father'),
+                    ),
+                    const SizedBox(height: 16),
+                    SomiButton(
+                      label: AppStrings.link(lang),
+                      variant: SomiButtonVariant.secondary,
+                      onPressed: _loading
+                          ? null
+                          : () async {
+                              try {
+                                final sid = await ref.read(authServiceProvider).linkStudent(
+                                      studentEmail: _studentEmailCtrl.text.trim(),
+                                      relationship: _relationship,
+                                    );
+                                if (sid != null && sid.isNotEmpty) {
+                                  ref.read(selectedStudentIdProvider.notifier).state = sid;
+                                }
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(AppStrings.link(lang))),
+                                );
+                              } catch (e) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(e.toString())),
+                                );
+                              }
+                            },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              SomiCard(
+                child: TextField(
+                  controller: _pinCtrl,
+                  keyboardType: TextInputType.number,
+                  obscureText: true,
+                  maxLength: 6,
+                  decoration: InputDecoration(
+                    labelText: AppStrings.setExamPin(lang),
+                    counterText: '',
+                  ),
                 ),
               ),
               if (_error != null)
                 Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  padding: const EdgeInsets.only(top: 12),
+                  child: SomiCard(
+                    leftBorderColor: scheme.error,
+                    padding: const EdgeInsets.all(16),
+                    child: Text(_error!, style: TextStyle(color: scheme.error)),
+                  ),
                 ),
               const SizedBox(height: 24),
-              ElevatedButton(
+              SomiButton(
+                label: AppStrings.continueDashboard(lang),
                 onPressed: _loading ? null : _submit,
-                child: Text(AppStrings.continueDashboard(lang)),
               ),
             ],
           ),

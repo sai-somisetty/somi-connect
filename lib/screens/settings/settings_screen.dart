@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../config/theme.dart';
 import '../../l10n/app_strings.dart';
+import '../../widgets/widgets.dart';
 import '../../models/isar/isar_collections.dart';
 import '../../providers/storage_provider.dart';
 import '../../providers/language_provider.dart';
@@ -81,93 +83,141 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ),
       body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         children: [
-          ListTile(
-            title: Text(AppStrings.language(lang)),
-            subtitle: SegmentedButton<AppLanguage>(
-              segments: const [
-                ButtonSegment(value: AppLanguage.telugu, label: Text('తెలుగు')),
-                ButtonSegment(value: AppLanguage.english, label: Text('English')),
+          SomiCard(
+            leftBorderColor: Theme.of(context).colorScheme.primary,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(AppStrings.language(lang), style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 12),
+                SegmentedButton<AppLanguage>(
+                  segments: const [
+                    ButtonSegment(value: AppLanguage.telugu, label: Text('తెలుగు')),
+                    ButtonSegment(value: AppLanguage.english, label: Text('English')),
+                  ],
+                  selected: {lang},
+                  onSelectionChanged: (s) {
+                    ref.read(languageProvider.notifier).state = s.first;
+                  },
+                ),
               ],
-              selected: {lang},
-              onSelectionChanged: (s) {
-                ref.read(languageProvider.notifier).state = s.first;
-              },
             ),
           ),
-          ListTile(
-            title: const Text('Change PIN'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showChangePin(context),
+          const SizedBox(height: AppTheme.sectionGap),
+          SomiCard(
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Change PIN'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _showChangePin(context),
+            ),
           ),
-          SwitchListTile(
-            title: const Text('Push notifications'),
-            value: _push,
-            onChanged: (v) async {
-              setState(() => _push = v);
-              try {
-                await ref.read(apiServiceProvider).updateNotificationPrefs(
-                      pushEnabled: v,
-                      whatsappEnabled: _whatsapp,
-                    );
-              } catch (_) {}
-            },
-          ),
-          SwitchListTile(
-            title: const Text('WhatsApp updates'),
-            value: _whatsapp,
-            onChanged: (v) async {
-              setState(() => _whatsapp = v);
-              try {
-                await ref.read(apiServiceProvider).updateNotificationPrefs(
-                      pushEnabled: _push,
-                      whatsappEnabled: v,
-                    );
-              } catch (_) {}
-            },
-          ),
-          const Divider(),
-          const ListTile(
-            title: Text('Linked students'),
-          ),
-          if (links.isEmpty)
-            const ListTile(title: Text('No linked students yet'))
-          else
-            ...links.map((link) {
-              StudentIsar? st;
-              for (final s in storage.allStudentsSync()) {
-                if (s.apiId == link.studentId) {
-                  st = s;
-                  break;
-                }
-              }
-              final name = st?.name ?? link.studentId;
-              return ListTile(
-                title: Text(name),
-                subtitle: Text(link.relationship),
-                trailing: IconButton(
-                  icon: const Icon(Icons.link_off),
-                  onPressed: () => _unlink(link),
+          const SizedBox(height: AppTheme.sectionGap),
+          SomiCard(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Push notifications'),
+                  value: _push,
+                  onChanged: (v) async {
+                    setState(() => _push = v);
+                    try {
+                      await ref.read(apiServiceProvider).updateNotificationPrefs(
+                            pushEnabled: v,
+                            whatsappEnabled: _whatsapp,
+                          );
+                    } catch (_) {}
+                  },
                 ),
-              );
-            }),
-          ListTile(
-            title: const Text('Link another child'),
-            onTap: () => context.push('/profile-setup'),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('WhatsApp updates'),
+                  value: _whatsapp,
+                  onChanged: (v) async {
+                    setState(() => _whatsapp = v);
+                    try {
+                      await ref.read(apiServiceProvider).updateNotificationPrefs(
+                            pushEnabled: _push,
+                            whatsappEnabled: v,
+                          );
+                    } catch (_) {}
+                  },
+                ),
+              ],
+            ),
           ),
-          ListTile(
-            title: const Text('Logout'),
-            leading: const Icon(Icons.logout, color: Colors.red),
-            onTap: _logout,
+          const SizedBox(height: AppTheme.sectionGap),
+          SomiHeader(title: 'Linked students'),
+          SomiCard(
+            child: links.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      'No linked students yet',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary),
+                    ),
+                  )
+                : Column(
+                    children: links.map((link) {
+                      StudentIsar? st;
+                      for (final s in storage.allStudentsSync()) {
+                        if (s.apiId == link.studentId) {
+                          st = s;
+                          break;
+                        }
+                      }
+                      final name = st?.name ?? link.studentId;
+                      return ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(name),
+                        subtitle: Text(link.relationship),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.link_off),
+                          onPressed: () => _unlink(link),
+                        ),
+                      );
+                    }).toList(),
+                  ),
           ),
-          ListTile(
-            title: Text(AppStrings.reportProblem(lang)),
-            trailing: const Icon(Icons.mail_outline),
-            onTap: _reportProblem,
+          const SizedBox(height: 12),
+          SomiButton(
+            label: 'Link another child',
+            variant: SomiButtonVariant.secondary,
+            onPressed: () => context.push('/profile-setup'),
           ),
-          ListTile(
-            title: const Text('App version'),
-            subtitle: Text(_version.isEmpty ? '…' : _version),
+          const SizedBox(height: AppTheme.sectionGap),
+          SomiCard(
+            child: Column(
+              children: [
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(AppStrings.reportProblem(lang)),
+                  trailing: const Icon(Icons.mail_outline),
+                  onTap: _reportProblem,
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('App version'),
+                  subtitle: Text(_version.isEmpty ? '…' : _version),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: AppTheme.minTapTarget,
+            child: OutlinedButton(
+              onPressed: _logout,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.danger,
+                side: const BorderSide(color: AppTheme.danger, width: 1.5),
+              ),
+              child: const Text('Logout'),
+            ),
           ),
         ],
       ),

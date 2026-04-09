@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../../config/theme.dart';
 import '../../../l10n/app_strings.dart';
 import '../../../models/isar/isar_collections.dart';
@@ -9,6 +11,7 @@ import '../../../providers/selected_student_provider.dart';
 import '../../../providers/ui_tick_provider.dart';
 import '../../../services/api_service.dart';
 import '../../../services/sync_service.dart';
+import '../../../widgets/widgets.dart';
 
 class HealthTab extends ConsumerWidget {
   const HealthTab({super.key});
@@ -20,15 +23,13 @@ class HealthTab extends ConsumerWidget {
     final lang = ref.watch(languageProvider);
     ref.watch(realtimeTickProvider);
 
+    final List<HealthRecordIsar> records;
     if (sid == null) {
-      return const Center(child: Text('Link a student to see health data.'));
+      records = [];
+    } else {
+      records = storage.allHealthRecordsSync().where((h) => h.studentId == sid).toList()
+        ..sort((a, b) => (b.recordDate ?? DateTime(1970)).compareTo(a.recordDate ?? DateTime(1970)));
     }
-
-    final records = storage
-        .allHealthRecordsSync()
-        .where((h) => h.studentId == sid)
-        .toList()
-      ..sort((a, b) => (b.recordDate ?? DateTime(1970)).compareTo(a.recordDate ?? DateTime(1970)));
 
     final latest = records.isNotEmpty ? records.first : null;
 
@@ -38,39 +39,157 @@ class HealthTab extends ConsumerWidget {
         latest.recordDate!.isBefore(sixMonthsAgo);
 
     return Scaffold(
+      backgroundColor: AppTheme.background,
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         children: [
           if (latest != null)
             _VitalsCard(record: latest)
           else
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Text('No health records yet.'),
-              ),
-            ),
-          const SizedBox(height: 16),
-          if (latest != null) _VitaminCard(record: latest),
-          const SizedBox(height: 16),
+            const _EmptyVitalsCard(),
+          const SizedBox(height: AppTheme.sectionGap),
+          if (latest != null)
+            _VitaminCard(record: latest)
+          else
+            const _EmptyVitaminCard(),
+          const SizedBox(height: AppTheme.sectionGap),
           const _CorrelationHint(),
           if (needsCheckup) ...[
-            const SizedBox(height: 16),
-            const Card(
-              color: Color(0xFFFFF3E0),
+            const SizedBox(height: AppTheme.sectionGap),
+            SomiCard(
+              leftBorderColor: AppTheme.warning,
               child: ListTile(
-                leading: Icon(Icons.event, color: AppTheme.accentWarmOrange),
-                title: Text('Next checkup due'),
-                subtitle: Text('More than 6 months since the last record.'),
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.event_available_rounded, color: AppTheme.orange, size: 32),
+                title: Text(
+                  'Next checkup due',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                subtitle: Text(
+                  latest == null
+                      ? 'Health record add chesaka reminders set avuthayi.'
+                      : 'More than 6 months since the last record.',
+                ),
               ),
             ),
           ],
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openForm(context, ref, sid),
+        onPressed: () {
+          if (sid == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: TenglishText(
+                  'Mundu pillani link cheyandi — health record save cheyataniki.',
+                  style: AppTheme.teluguStyle(fontSize: 15, color: Colors.white),
+                ),
+                action: SnackBarAction(
+                  label: 'Link',
+                  textColor: Colors.white,
+                  onPressed: () => context.push('/profile-setup'),
+                ),
+              ),
+            );
+            return;
+          }
+          _openForm(context, ref, sid);
+        },
         icon: const Icon(Icons.add),
         label: Text(AppStrings.addHealthRecord(lang)),
+      ),
+    );
+  }
+}
+
+class _EmptyVitalsCard extends StatelessWidget {
+  const _EmptyVitalsCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return SomiCard(
+      leftBorderColor: AppTheme.navy,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.local_hospital_outlined, color: AppTheme.navy),
+              const SizedBox(width: 10),
+              Text('Physical health 🏥', style: Theme.of(context).textTheme.titleLarge),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: StatCard(
+                  value: '—',
+                  label: 'Height (cm)',
+                  valueColor: AppTheme.textSecondary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: StatCard(
+                  value: '—',
+                  label: 'Weight (kg)',
+                  valueColor: AppTheme.textSecondary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: StatCard(
+                  value: '—',
+                  label: 'BMI',
+                  valueColor: AppTheme.textSecondary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          TenglishText(
+            'Health records add cheyandi',
+            style: AppTheme.teluguStyle(fontSize: 15, color: AppTheme.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyVitaminCard extends StatelessWidget {
+  const _EmptyVitaminCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final track = AppTheme.textSecondary.withValues(alpha: 0.15);
+    return SomiCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Vitamin levels 💊', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 16),
+          for (final label in ['B12', 'D3', 'Iron']) ...[
+            Text(label, style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: null,
+                minHeight: 10,
+                backgroundColor: track,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 6, bottom: 12),
+              child: Text(
+                '—',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(color: AppTheme.textSecondary),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -81,21 +200,64 @@ class _VitalsCard extends StatelessWidget {
 
   final HealthRecordIsar record;
 
+  Color _bmiColor(double? bmi) {
+    if (bmi == null) return AppTheme.textSecondary;
+    if (bmi < 18.5 || bmi > 30) return AppTheme.danger;
+    if (bmi >= 25) return AppTheme.warning;
+    return AppTheme.success;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Latest vitals', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 12),
-            Text('Height: ${record.heightCm?.toStringAsFixed(1) ?? '—'} cm'),
-            Text('Weight: ${record.weightKg?.toStringAsFixed(1) ?? '—'} kg'),
-            Text('BMI: ${record.bmi?.toStringAsFixed(1) ?? '—'}'),
+    final bmi = record.bmi;
+    return SomiCard(
+      leftBorderColor: AppTheme.navy,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.local_hospital_outlined, color: AppTheme.navy),
+              const SizedBox(width: 10),
+              Text('Physical health 🏥', style: Theme.of(context).textTheme.titleLarge),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: StatCard(
+                  value: record.heightCm?.toStringAsFixed(0) ?? '—',
+                  label: 'Height (cm)',
+                  valueColor: AppTheme.navy,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: StatCard(
+                  value: record.weightKg?.toStringAsFixed(1) ?? '—',
+                  label: 'Weight (kg)',
+                  valueColor: AppTheme.orange,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: StatCard(
+                  value: record.bmi?.toStringAsFixed(1) ?? '—',
+                  label: 'BMI',
+                  valueColor: _bmiColor(bmi),
+                ),
+              ),
+            ],
+          ),
+          if (record.recordDate != null) ...[
+            const SizedBox(height: 16),
+            Text(
+              'Last updated: ${record.recordDate!.toLocal().toString().split(' ').first}',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -107,38 +269,45 @@ class _VitaminCard extends StatelessWidget {
   final HealthRecordIsar record;
 
   static Color _levelColor(double? v, {required double low, double? high}) {
-    if (v == null) return Colors.grey;
-    if (v < low) return Colors.red.shade700;
-    if (high != null && v > high) return Colors.green.shade600;
-    return Colors.amber.shade800;
+    if (v == null) return AppTheme.textSecondary;
+    if (v < low) return AppTheme.danger;
+    if (high != null && v > high) return AppTheme.success;
+    return AppTheme.warning;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Vitamins & iron', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            _row('B12', record.vitaminB12, _levelColor(record.vitaminB12, low: 200)),
-            _row('D3', record.vitaminD3, _levelColor(record.vitaminD3, low: 20, high: 100)),
-            _row('Iron', record.ironLevel, _levelColor(record.ironLevel, low: 60)),
-          ],
-        ),
+    return SomiCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Vitamin levels 💊', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 16),
+          _vitaminRow(context, 'B12', record.vitaminB12, _levelColor(record.vitaminB12, low: 200)),
+          _vitaminRow(context, 'D3', record.vitaminD3, _levelColor(record.vitaminD3, low: 20, high: 100)),
+          _vitaminRow(context, 'Iron', record.ironLevel, _levelColor(record.ironLevel, low: 60)),
+        ],
       ),
     );
   }
 
-  Widget _row(String label, double? v, Color c) {
-    return ListTile(
-      dense: true,
-      title: Text(label),
-      trailing: Text(
-        v?.toStringAsFixed(1) ?? '—',
-        style: TextStyle(color: c, fontWeight: FontWeight.bold),
+  Widget _vitaminRow(BuildContext context, String label, double? v, Color c) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(label, style: Theme.of(context).textTheme.titleSmall),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              v?.toStringAsFixed(1) ?? '—',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(color: c, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -149,12 +318,15 @@ class _CorrelationHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Colors.blue.shade50,
-      child: const ListTile(
-        leading: Icon(Icons.lightbulb_outline),
-        title: Text('Health correlations'),
-        subtitle: Text('Low B12 may be affecting focus — discuss with your doctor.'),
+    return SomiCard(
+      leftBorderColor: AppTheme.navy.withValues(alpha: 0.35),
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: Icon(Icons.lightbulb_outline_rounded, color: AppTheme.navy.withValues(alpha: 0.8)),
+        title: Text('Health correlations', style: Theme.of(context).textTheme.titleSmall),
+        subtitle: const TenglishText(
+          'Takkuva B12 focus ni affect cheyagaladu — doctor ni consult cheyandi.',
+        ),
       ),
     );
   }
@@ -173,10 +345,10 @@ Future<void> _openForm(BuildContext context, WidgetRef ref, String studentId) as
     builder: (ctx) {
       return Padding(
         padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: 16,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -206,10 +378,10 @@ Future<void> _openForm(BuildContext context, WidgetRef ref, String studentId) as
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: 'Iron (optional)'),
             ),
-            const SizedBox(height: 16),
-            FilledButton(
+            const SizedBox(height: 20),
+            SomiButton(
+              label: 'Save',
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Save'),
             ),
           ],
         ),

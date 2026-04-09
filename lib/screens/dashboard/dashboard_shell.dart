@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../l10n/app_strings.dart';
 import '../../providers/storage_provider.dart';
 import '../../providers/language_provider.dart';
@@ -125,11 +126,26 @@ class _DashboardTitle extends ConsumerWidget {
       children: [
         Text(
           name,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w700,
+            fontSize: 17,
+            color: Colors.white,
+          ),
         ),
         Text(
           AppStrings.meePillalaDashboard(lang),
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+          style: lang == AppLanguage.telugu
+              ? GoogleFonts.notoSansTelugu(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white.withValues(alpha: 0.92),
+                  height: 1.3,
+                )
+              : GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white.withValues(alpha: 0.92),
+                ),
         ),
       ],
     );

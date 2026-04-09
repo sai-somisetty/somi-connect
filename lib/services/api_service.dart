@@ -85,6 +85,32 @@ class ApiService {
     return [];
   }
 
+  /// Phase 2 dashboard aggregate (optional backend). Returns null on 404 / error body.
+  Future<Map<String, dynamic>?> getParentDashboard(String studentId) async {
+    final res = await _dio.get<Map<String, dynamic>>('/parent/dashboard/$studentId');
+    if (res.statusCode != 200 || res.data == null) return null;
+    final raw = res.data!;
+    final nested = raw['data'];
+    if (nested is Map<String, dynamic>) return nested;
+    if (nested is Map) return Map<String, dynamic>.from(nested);
+    return raw;
+  }
+
+  /// Activity timeline for Today tab (optional backend).
+  Future<List<dynamic>> getParentActivityList(String studentId) async {
+    final res = await _dio.get<dynamic>('/parent/activity/$studentId');
+    if (res.statusCode != 200 || res.data == null) return [];
+    final data = res.data;
+    if (data is List) return data;
+    if (data is Map) {
+      for (final key in ['activities', 'items', 'timeline', 'data', 'events']) {
+        final list = data[key];
+        if (list is List) return list;
+      }
+    }
+    return [];
+  }
+
   Future<List<dynamic>> getChapterRoadmap(String studentId) async {
     final res = await _dio.get<Map<String, dynamic>>(
       '/parent/students/$studentId/chapters',
