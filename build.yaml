@@ -1,0 +1,2 @@
+# Freezed: dart run build_runner build --delete-conflicting-outputs
+# Isar: regenerate with isar_community_generator when schema changes (resolve pub constraints first).
