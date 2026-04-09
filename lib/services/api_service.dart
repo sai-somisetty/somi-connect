@@ -163,7 +163,49 @@ class ApiService {
   }
 
   Future<void> postHealthRecord(Map<String, dynamic> body) async {
-    await _dio.post<void>('/parent/health-records', data: body);
+    await _dio.post<void>('/parent/health/record', data: body);
+  }
+
+  Future<Map<String, dynamic>?> uploadHealthReportBytes({
+    required String studentId,
+    required String source,
+    required List<int> bytes,
+    required String filename,
+  }) async {
+    final form = FormData.fromMap({
+      'student_id': studentId,
+      'source': source,
+      'file': MultipartFile.fromBytes(bytes, filename: filename),
+    });
+    final res = await _dio.post<Map<String, dynamic>>(
+      '/parent/health/upload-report',
+      data: form,
+    );
+    return res.data;
+  }
+
+  Future<void> confirmParsedHealth({
+    required String healthRecordId,
+    required Map<String, dynamic> corrections,
+  }) async {
+    await _dio.post<void>(
+      '/parent/health/confirm-parsed',
+      data: {'health_record_id': healthRecordId, 'corrections': corrections},
+    );
+  }
+
+  Future<void> postDeviceToken(String token, String platform) async {
+    await _dio.post<void>(
+      '/parent/device-token',
+      data: {'device_token': token, 'platform': platform},
+    );
+  }
+
+  Future<List<dynamic>> getMirrorResults(String studentId) async {
+    final res = await _dio.get<Map<String, dynamic>>('/mirror/results/$studentId');
+    final list = res.data?['results'];
+    if (list is List) return list;
+    return [];
   }
 
   Future<List<dynamic>> getNudges() async {
@@ -174,7 +216,7 @@ class ApiService {
   }
 
   Future<void> markNudgeRead(String nudgeId) async {
-    await _dio.patch<void>('/parent/nudges/$nudgeId/read');
+    await _dio.post<void>('/parent/nudges/$nudgeId/read');
   }
 
   Future<void> unlinkStudent(String linkId) async {

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../config/theme.dart';
 import '../../../models/isar/isar_collections.dart';
+import '../../../providers/mirror_provider.dart';
 import '../../../providers/storage_provider.dart';
 import '../../../providers/selected_student_provider.dart';
 import '../../../providers/ui_tick_provider.dart';
@@ -89,7 +90,199 @@ class ProgressTab extends ConsumerWidget {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: _ConceptSomiCard(concept: c),
               )),
+        if (sid != null) ...[
+          const SizedBox(height: AppTheme.sectionGap),
+          _CollegeMirrorSection(studentId: sid),
+        ],
       ],
+    );
+  }
+}
+
+class _CollegeMirrorSection extends ConsumerWidget {
+  const _CollegeMirrorSection({required this.studentId});
+
+  final String studentId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(mirrorResultsProvider(studentId));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SomiHeader(
+          title: 'College vs Mirror Tests 🎓',
+          titleTelugu: false,
+        ),
+        async.when(
+          data: (rows) {
+            if (rows.isEmpty) {
+              return SomiCard(
+                child: EmptyState(
+                  icon: Icons.school_outlined,
+                  message: 'Mirror tests inkaa levu',
+                ),
+              );
+            }
+            return Column(
+              children: rows.map((r) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _MirrorResultCard(row: r),
+                );
+              }).toList(),
+            );
+          },
+          loading: () => const SomiCard(
+            child: Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
+          ),
+          error: (_, _) => SomiCard(
+            child: EmptyState(
+              icon: Icons.cloud_off_outlined,
+              message: 'Mirror data load avvale',
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MirrorResultCard extends StatelessWidget {
+  const _MirrorResultCard({required this.row});
+
+  final Map<String, dynamic> row;
+
+  double _d(String a, String b) {
+    final x = row[a];
+    final y = row[b];
+    if (x is num && y is num) return (x.toDouble() - y.toDouble()).abs();
+    return 0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final college = (row['college_score'] as num?)?.toDouble() ?? 0;
+    final mirror = (row['mirror_score'] as num?)?.toDouble() ?? 0;
+    final gap = (row['gap_percentage'] as num?)?.toDouble() ?? _d('college_score', 'mirror_score');
+    final rote = row['rote_learning_flag'] == true || gap > 30;
+    final title = row['paper_title']?.toString() ?? 'Mirror test';
+    final collegeName = row['college_name']?.toString() ?? '';
+
+    return InkWell(
+      onTap: () => _MirrorDetailSheet.show(context, row),
+      borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+      child: SomiCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+            if (collegeName.isNotEmpty)
+              Text(collegeName, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary)),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('College', style: Theme.of(context).textTheme.labelSmall),
+                      const SizedBox(height: 4),
+                      LinearProgressIndicator(
+                        value: (college / 100).clamp(0, 1),
+                        minHeight: 10,
+                        color: AppTheme.navy,
+                        backgroundColor: AppTheme.textSecondary.withValues(alpha: 0.12),
+                      ),
+                      Text('${college.toStringAsFixed(0)}%', style: Theme.of(context).textTheme.titleSmall),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Mirror', style: Theme.of(context).textTheme.labelSmall),
+                      const SizedBox(height: 4),
+                      LinearProgressIndicator(
+                        value: (mirror / 100).clamp(0, 1),
+                        minHeight: 10,
+                        color: AppTheme.orange,
+                        backgroundColor: AppTheme.textSecondary.withValues(alpha: 0.12),
+                      ),
+                      Text('${mirror.toStringAsFixed(0)}%', style: Theme.of(context).textTheme.titleSmall),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text('Gap: ${gap.toStringAsFixed(0)}%', style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 8),
+            if (rote)
+              Chip(
+                label: const Text('⚠️ Rote learning signs'),
+                backgroundColor: AppTheme.danger.withValues(alpha: 0.12),
+                side: BorderSide(color: AppTheme.danger.withValues(alpha: 0.4)),
+              )
+            else if (gap < 10)
+              Chip(
+                label: const Text('✅ Strong conceptual understanding'),
+                backgroundColor: AppTheme.success.withValues(alpha: 0.12),
+                side: BorderSide(color: AppTheme.success.withValues(alpha: 0.4)),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MirrorDetailSheet {
+  static void show(BuildContext context, Map<String, dynamic> row) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.55,
+        maxChildSize: 0.9,
+        minChildSize: 0.35,
+        builder: (context, scroll) {
+          final breakdown = row['question_breakdown'];
+          final items = breakdown is List ? breakdown : const <dynamic>[];
+          return ListView(
+            controller: scroll,
+            padding: const EdgeInsets.all(20),
+            children: [
+              Text(
+                row['paper_title']?.toString() ?? 'Mirror test',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              if (items.isEmpty)
+                TenglishText(
+                  'Question-wise breakdown backend nunchi vastundi.',
+                  style: AppTheme.teluguStyle(color: AppTheme.textSecondary),
+                )
+              else
+                ...items.map((e) {
+                  if (e is! Map) return const SizedBox.shrink();
+                  final m = Map<String, dynamic>.from(e);
+                  return ListTile(
+                    title: Text(m['label']?.toString() ?? 'Q'),
+                    subtitle: Text(m['note']?.toString() ?? ''),
+                  );
+                }),
+            ],
+          );
+        },
+      ),
     );
   }
 }
