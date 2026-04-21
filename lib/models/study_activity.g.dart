@@ -6,8 +6,8 @@ part of 'study_activity.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_StudyActivity _$StudyActivityFromJson(Map<String, dynamic> json) =>
-    _StudyActivity(
+_$StudyActivityImpl _$$StudyActivityImplFromJson(Map<String, dynamic> json) =>
+    _$StudyActivityImpl(
       id: json['id'] as String,
       studentId: json['student_id'] as String,
       activityDate: DateTime.parse(json['activity_date'] as String),
@@ -17,7 +17,7 @@ _StudyActivity _$StudyActivityFromJson(Map<String, dynamic> json) =>
       conceptId: json['concept_id'] as String?,
     );
 
-Map<String, dynamic> _$StudyActivityToJson(_StudyActivity instance) =>
+Map<String, dynamic> _$$StudyActivityImplToJson(_$StudyActivityImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'student_id': instance.studentId,

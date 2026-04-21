@@ -6,24 +6,25 @@ part of 'exam_session.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_ExamSession _$ExamSessionFromJson(Map<String, dynamic> json) => _ExamSession(
-  id: json['id'] as String,
-  studentId: json['student_id'] as String,
-  examType: json['exam_type'] as String,
-  status: json['status'] as String,
-  kioskLocked: json['kiosk_locked'] as bool,
-  startedAt: json['started_at'] == null
-      ? null
-      : DateTime.parse(json['started_at'] as String),
-  endedAt: json['ended_at'] == null
-      ? null
-      : DateTime.parse(json['ended_at'] as String),
-  totalQuestions: (json['total_questions'] as num?)?.toInt(),
-  answeredCount: (json['answered_count'] as num?)?.toInt(),
-  parentPinVerified: json['parent_pin_verified'] as bool,
-);
+_$ExamSessionImpl _$$ExamSessionImplFromJson(Map<String, dynamic> json) =>
+    _$ExamSessionImpl(
+      id: json['id'] as String,
+      studentId: json['student_id'] as String,
+      examType: json['exam_type'] as String,
+      status: json['status'] as String,
+      kioskLocked: json['kiosk_locked'] as bool,
+      startedAt: json['started_at'] == null
+          ? null
+          : DateTime.parse(json['started_at'] as String),
+      endedAt: json['ended_at'] == null
+          ? null
+          : DateTime.parse(json['ended_at'] as String),
+      totalQuestions: (json['total_questions'] as num?)?.toInt(),
+      answeredCount: (json['answered_count'] as num?)?.toInt(),
+      parentPinVerified: json['parent_pin_verified'] as bool,
+    );
 
-Map<String, dynamic> _$ExamSessionToJson(_ExamSession instance) =>
+Map<String, dynamic> _$$ExamSessionImplToJson(_$ExamSessionImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'student_id': instance.studentId,

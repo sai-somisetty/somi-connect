@@ -6,7 +6,7 @@ part of 'nudge.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_Nudge _$NudgeFromJson(Map<String, dynamic> json) => _Nudge(
+_$NudgeImpl _$$NudgeImplFromJson(Map<String, dynamic> json) => _$NudgeImpl(
   id: json['id'] as String,
   parentId: json['parent_id'] as String,
   studentId: json['student_id'] as String,
@@ -20,14 +20,15 @@ _Nudge _$NudgeFromJson(Map<String, dynamic> json) => _Nudge(
       : DateTime.parse(json['created_at'] as String),
 );
 
-Map<String, dynamic> _$NudgeToJson(_Nudge instance) => <String, dynamic>{
-  'id': instance.id,
-  'parent_id': instance.parentId,
-  'student_id': instance.studentId,
-  'nudge_type': instance.nudgeType,
-  'title': instance.title,
-  'body': instance.body,
-  'priority': instance.priority,
-  'is_read': instance.isRead,
-  'created_at': instance.createdAt?.toIso8601String(),
-};
+Map<String, dynamic> _$$NudgeImplToJson(_$NudgeImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'parent_id': instance.parentId,
+      'student_id': instance.studentId,
+      'nudge_type': instance.nudgeType,
+      'title': instance.title,
+      'body': instance.body,
+      'priority': instance.priority,
+      'is_read': instance.isRead,
+      'created_at': instance.createdAt?.toIso8601String(),
+    };

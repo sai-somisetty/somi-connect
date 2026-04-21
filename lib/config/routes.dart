@@ -33,52 +33,29 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/profile-setup',
         builder: (context, state) => const ProfileSetupScreen(),
       ),
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) {
-          return DashboardShell(navigationShell: navigationShell);
-        },
-        branches: [
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/dashboard/today',
-                pageBuilder: (context, state) => const NoTransitionPage<void>(
-                  child: TodayTabHost(),
-                ),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/dashboard/progress',
-                pageBuilder: (context, state) => const NoTransitionPage<void>(
-                  child: ProgressTabHost(),
-                ),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/dashboard/exam',
-                pageBuilder: (context, state) => const NoTransitionPage<void>(
-                  child: ExamTabHost(),
-                ),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/dashboard/health',
-                pageBuilder: (context, state) => const NoTransitionPage<void>(
-                  child: HealthTabHost(),
-                ),
-              ),
-            ],
-          ),
-        ],
+
+      // ── Full-screen push routes (no bottom nav) ────────────────────────────
+      // Defined before the shell so they are matched first when explicitly
+      // pushed via context.push() with parentNavigatorKey = root.
+      GoRoute(
+        path: '/dashboard/bridge',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const BridgeTabHost(),
+      ),
+      GoRoute(
+        path: '/dashboard/exam',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ExamTabHost(),
+      ),
+      GoRoute(
+        path: '/dashboard/health',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const HealthTabHost(),
+      ),
+      GoRoute(
+        path: '/dashboard/progress/subjects',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ProgressTabDetailHost(),
       ),
       GoRoute(
         path: '/nudges',
@@ -89,6 +66,32 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/settings',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const SettingsScreen(),
+      ),
+
+      // ── 2-tab shell: Home (Today) + Progress hub ───────────────────────────
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            DashboardShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/dashboard/today',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage<void>(child: TodayTabHost()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/dashboard/progress',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage<void>(child: ProgressTabHost()),
+              ),
+            ],
+          ),
+        ],
       ),
     ],
   );

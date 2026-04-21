@@ -7,9 +7,18 @@ import 'api_service.dart';
 
 /// Call once after [ProviderScope] is available (e.g. first frame of [SomiApp]).
 Future<void> initPushNotifications(WidgetRef ref) async {
-  if (kIsWeb) return;
+  if (kIsWeb) {
+    debugPrint('[SOMI] FCM: skipped (web)');
+    return;
+  }
+  debugPrint('[SOMI] FCM: initPushNotifications start');
   try {
-    await Firebase.initializeApp();
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp();
+      debugPrint('[SOMI] FCM: Firebase.initializeApp OK (post-frame)');
+    } else {
+      debugPrint('[SOMI] FCM: Firebase already initialized, skipping duplicate init');
+    }
     final messaging = FirebaseMessaging.instance;
     await messaging.requestPermission();
     final token = await messaging.getToken();

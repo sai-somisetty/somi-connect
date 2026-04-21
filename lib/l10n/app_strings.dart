@@ -46,8 +46,11 @@ abstract final class AppStrings {
   static String link(AppLanguage l) =>
       l == AppLanguage.telugu ? 'Link' : 'Link';
 
-  static String today(AppLanguage l) =>
-      l == AppLanguage.telugu ? 'Iroju' : 'Today';
+  static String today(AppLanguage l) => 'Home';
+
+  /// Classroom ↔ app bridge tab.
+  static String bridge(AppLanguage l) =>
+      l == AppLanguage.telugu ? 'Bridge' : 'Bridge';
 
   static String progress(AppLanguage l) =>
       l == AppLanguage.telugu ? 'Progress' : 'Progress';
@@ -63,8 +66,8 @@ abstract final class AppStrings {
 
   static String nudgesEmpty(AppLanguage l) =>
       l == AppLanguage.telugu
-          ? 'Khaali! No nudges right now 😊'
-          : 'All clear! No nudges right now 😊';
+          ? 'Suggestions emi levu! 😊'
+          : 'Suggestions emi levu! 😊';
 
   static String noExam(AppLanguage l) =>
       l == AppLanguage.telugu

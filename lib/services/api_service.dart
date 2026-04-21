@@ -227,6 +227,13 @@ class ApiService {
     return Map<String, dynamic>.from(res.data!);
   }
 
+  /// `GET /parent/bridge/{student_id}` — college vs app coverage.
+  Future<Map<String, dynamic>> getBridge(String studentId) async {
+    final res = await _dio.get<Map<String, dynamic>>('/parent/bridge/$studentId');
+    if (res.statusCode != 200 || res.data == null) return {};
+    return Map<String, dynamic>.from(res.data!);
+  }
+
   Future<List<dynamic>> getNudges() async {
     final res = await _dio.get<Map<String, dynamic>>('/parent/nudges');
     final list = res.data?['nudges'] ?? res.data?['items'];

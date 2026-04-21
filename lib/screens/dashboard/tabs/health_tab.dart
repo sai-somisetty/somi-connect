@@ -35,11 +35,6 @@ class HealthTab extends ConsumerWidget {
 
     final latest = records.isNotEmpty ? records.first : null;
 
-    final sixMonthsAgo = DateTime.now().subtract(const Duration(days: 183));
-    final needsCheckup = latest == null ||
-        latest.recordDate == null ||
-        latest.recordDate!.isBefore(sixMonthsAgo);
-
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: ListView(
@@ -55,44 +50,29 @@ class HealthTab extends ConsumerWidget {
           else
             const _EmptyVitaminCard(),
           const SizedBox(height: AppTheme.sectionGap),
-          const _CorrelationHint(),
-          if (needsCheckup) ...[
-            const SizedBox(height: AppTheme.sectionGap),
-            SomiCard(
-              leftBorderColor: AppTheme.warning,
-              child: ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.event_available_rounded, color: AppTheme.orange, size: 32),
-                title: Text(
-                  'Next checkup due',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                subtitle: Text(
-                  latest == null
-                      ? 'Health record add chesaka reminders set avuthayi.'
-                      : 'More than 6 months since the last record.',
-                ),
+          if (latest != null) const _CorrelationHint(),
+          const SizedBox(height: AppTheme.sectionGap),
+          SomiCard(
+            leftBorderColor: AppTheme.warning,
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.event_available_rounded, color: AppTheme.orange, size: 32),
+              title: Text(
+                'Checkup reminder',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              subtitle: TenglishText(
+                'Health records add cheyandi',
+                style: AppTheme.teluguStyle(fontSize: 14, color: AppTheme.textSecondary),
               ),
             ),
-          ],
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           if (sid == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: TenglishText(
-                  'Mundu pillani link cheyandi — health record save cheyataniki.',
-                  style: AppTheme.teluguStyle(fontSize: 15, color: Colors.white),
-                ),
-                action: SnackBarAction(
-                  label: 'Link',
-                  textColor: Colors.white,
-                  onPressed: () => context.push('/profile-setup'),
-                ),
-              ),
-            );
+            context.push('/profile-setup');
             return;
           }
           _openForm(context, ref, sid);
@@ -148,11 +128,6 @@ class _EmptyVitalsCard extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 16),
-          TenglishText(
-            'Health records add cheyandi',
-            style: AppTheme.teluguStyle(fontSize: 15, color: AppTheme.textSecondary),
           ),
         ],
       ),

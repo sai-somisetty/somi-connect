@@ -6,8 +6,8 @@ part of 'health_record.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_HealthRecord _$HealthRecordFromJson(Map<String, dynamic> json) =>
-    _HealthRecord(
+_$HealthRecordImpl _$$HealthRecordImplFromJson(Map<String, dynamic> json) =>
+    _$HealthRecordImpl(
       id: json['id'] as String,
       studentId: json['student_id'] as String,
       recordType: json['record_type'] as String,
@@ -24,7 +24,7 @@ _HealthRecord _$HealthRecordFromJson(Map<String, dynamic> json) =>
       hemoglobin: (json['hemoglobin'] as num?)?.toDouble(),
     );
 
-Map<String, dynamic> _$HealthRecordToJson(_HealthRecord instance) =>
+Map<String, dynamic> _$$HealthRecordImplToJson(_$HealthRecordImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'student_id': instance.studentId,

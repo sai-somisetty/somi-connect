@@ -1,4 +1,6 @@
 export 'anomaly.dart';
+export 'daily_insight.dart';
+export 'upcoming_exam.dart';
 export 'concept_progress.dart';
 export 'exam_session.dart';
 export 'health_record.dart';

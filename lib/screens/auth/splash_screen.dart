@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -28,7 +30,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
     _opacity = CurvedAnimation(parent: _fade, curve: Curves.easeIn);
     _fade.forward();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _boot());
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) context.go("/dashboard/today"); });
   }
 
   @override
@@ -37,29 +39,70 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     super.dispose();
   }
 
-  Future<void> _boot() async {
-    final storage = ref.read(storageServiceProvider);
-    final token = await storage.readToken();
-    if (!mounted) return;
+  static const _hardTimeout = Duration(seconds: 5);
+  static const _tokenTimeout = Duration(seconds: 3);
+  static const _validateTimeout = Duration(seconds: 4);
 
-    if (token == null || token.isEmpty) {
-      context.go('/auth');
-      return;
+  Future<void> _boot() async {
+    var navigated = false;
+    void go(String path) {
+      if (!mounted || navigated) return;
+      navigated = true;
+      context.go(path);
     }
 
+    final timer = Timer(_hardTimeout, () {
+      if (!mounted || navigated) return;
+      debugPrint('[SOMI] SplashScreen: ${_hardTimeout.inSeconds}s timeout → /auth');
+      navigated = true;
+      context.go('/auth');
+    });
+
     try {
-      final ok = await ref.read(apiServiceProvider).validateToken();
+      debugPrint('[SOMI] SplashScreen: boot start');
+      final storage = ref.read(storageServiceProvider);
+      final token = await storage.readToken().timeout(
+        _tokenTimeout,
+        onTimeout: () {
+          debugPrint('[SOMI] SplashScreen: readToken timed out');
+          return null;
+        },
+      );
       if (!mounted) return;
+
+      if (token == null || token.isEmpty) {
+        debugPrint('[SOMI] SplashScreen: no token → /auth');
+        timer.cancel();
+        go('/auth');
+        return;
+      }
+
+      debugPrint('[SOMI] SplashScreen: validating token…');
+      final ok = await ref.read(apiServiceProvider).validateToken().timeout(
+            _validateTimeout,
+            onTimeout: () {
+              debugPrint('[SOMI] SplashScreen: validateToken timed out');
+              return false;
+            },
+          );
+      if (!mounted) return;
+      timer.cancel();
       if (ok) {
-        context.go('/dashboard/today');
+        debugPrint('[SOMI] SplashScreen: token OK → dashboard');
+        go('/dashboard/today');
       } else {
+        debugPrint('[SOMI] SplashScreen: token invalid → /auth');
         await storage.clearToken();
         if (!mounted) return;
-        context.go('/auth');
+        go('/auth');
       }
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('[SOMI] SplashScreen: boot error → /auth: $e\n$st');
       if (!mounted) return;
-      context.go('/auth');
+      timer.cancel();
+      go('/auth');
+    } finally {
+      timer.cancel();
     }
   }
 

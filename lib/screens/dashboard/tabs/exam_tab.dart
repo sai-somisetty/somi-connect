@@ -14,6 +14,11 @@ import '../../../widgets/widgets.dart';
 class ExamTab extends ConsumerWidget {
   const ExamTab({super.key});
 
+  static bool _isPastExam(String status) {
+    final st = status.toLowerCase();
+    return st == 'completed' || st == 'submitted' || st == 'ended';
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final storage = ref.watch(storageProvider);
@@ -21,37 +26,40 @@ class ExamTab extends ConsumerWidget {
     final lang = ref.watch(languageProvider);
     ref.watch(realtimeTickProvider);
 
-    final sessions = storage
-        .allExamSessionsSync()
-        .where((e) => sid != null && e.studentId == sid)
-        .toList()
+    final sessions = sid == null
+        ? <ExamSessionIsar>[]
+        : storage
+            .allExamSessionsSync()
+            .where((e) => e.studentId == sid)
+            .toList()
       ..sort((a, b) => (b.startedAt ?? DateTime(1970)).compareTo(a.startedAt ?? DateTime(1970)));
 
     ExamSessionIsar? active;
     for (final s in sessions) {
-      final st = s.status.toLowerCase();
-      if (st != 'completed' && st != 'submitted' && st != 'ended') {
+      if (!_isPastExam(s.status)) {
         active = s;
         break;
       }
     }
 
-    final anomalies = storage
-        .allAnomaliesSync()
-        .where((a) => sid != null && a.studentId == sid)
-        .toList()
+    final anomalies = sid == null
+        ? <AnomalyIsar>[]
+        : storage
+            .allAnomaliesSync()
+            .where((a) => a.studentId == sid)
+            .toList()
       ..sort((a, b) => (b.createdAt ?? DateTime(1970)).compareTo(a.createdAt ?? DateTime(1970)));
+
+    final pastExams = sessions.where((s) => _isPastExam(s.status)).toList();
 
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       children: [
         if (active == null)
           EmptyState(
-            icon: Icons.spa_outlined,
-            message: lang == AppLanguage.telugu
-                ? 'Eppudu pariksha ledu. Mee pillalu exam start chesthe ikkada live status kanipistundi.'
-                : AppStrings.noExam(lang),
-            messageTelugu: lang == AppLanguage.telugu,
+            icon: Icons.assignment_outlined,
+            message: 'Exam ledu ippudu',
+            messageTelugu: true,
           )
         else
           _ActiveExamCard(session: active, lang: lang),
@@ -60,17 +68,9 @@ class ExamTab extends ConsumerWidget {
         if (anomalies.isEmpty)
           SomiCard(
             leftBorderColor: AppTheme.success,
-            child: Row(
-              children: [
-                const Icon(Icons.verified_user_rounded, color: Color(0xFF276749)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'No suspicious activity detected.',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ),
-              ],
+            child: TenglishText(
+              '✅ Suspicious activity ledu',
+              style: AppTheme.teluguStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
           )
         else
@@ -78,7 +78,45 @@ class ExamTab extends ConsumerWidget {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: _AnomalyCard(anomaly: a),
               )),
+        const SizedBox(height: AppTheme.sectionGap),
+        SomiHeader(title: 'Past exams', titleTelugu: false),
+        if (pastExams.isEmpty)
+          SomiCard(
+            child: TenglishText(
+              'Past exams inkaa levu',
+              style: AppTheme.teluguStyle(fontSize: 15, color: AppTheme.textSecondary),
+            ),
+          )
+        else
+          ...pastExams.take(15).map((s) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _PastExamTile(session: s),
+              )),
       ],
+    );
+  }
+}
+
+class _PastExamTile extends StatelessWidget {
+  const _PastExamTile({required this.session});
+
+  final ExamSessionIsar session;
+
+  @override
+  Widget build(BuildContext context) {
+    return SomiCard(
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        title: Text(session.examType, style: Theme.of(context).textTheme.titleSmall),
+        subtitle: Text(
+          session.startedAt?.toLocal().toString().split('.').first ?? '—',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        trailing: Text(
+          session.status,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppTheme.textSecondary),
+        ),
+      ),
     );
   }
 }

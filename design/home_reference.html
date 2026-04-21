@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>SOMI Connect - Parent Home Reference Design</title>
+<style>
+body { margin: 0; padding: 0; background: #F2EADB; font-family: 'SF Pro Display', -apple-system, sans-serif; }
+.phone-frame { width: 390px; min-height: 844px; margin: 40px auto; background: #FBF7EE; border-radius: 44px; overflow: hidden; border: 8px solid #071739; position: relative; }
+.notch { height: 30px; background: #071739; display: flex; justify-content: center; align-items: center; }
+.notch-pill { width: 80px; height: 6px; background: #1a2d50; border-radius: 3px; }
+.body { height: 782px; overflow-y: auto; background: #FBF7EE; position: relative; }
+.grain { position: absolute; inset: 0; background-image: radial-gradient(circle at 20% 40%, rgba(166,136,104,0.03) 0px, transparent 40%), radial-gradient(circle at 80% 70%, rgba(7,23,57,0.025) 0px, transparent 50%); pointer-events: none; }
+</style>
+</head>
+<body>
+
+<!-- 
+  SOMI CONNECT — PARENT HOME SCREEN REFERENCE DESIGN
+  
+  COLOR TOKENS (use these exact values):
+  - Navy primary:       #071739
+  - Navy deeper:        #1a2d50
+  - Gold:               #E3C39D
+  - Sand:               #A68868
+  - Steel:              #4B6382
+  - Silver:             #A4B5C4
+  - Paper:              #FBF7EE  (scaffold background)
+  - Cream:              #F2EADB
+  - Alarm red:          #B43A3A
+  - Alarm red bg (8%):  rgba(180,58,58,0.08)
+  - Sand tint (8%):     rgba(227,195,157,0.08)
+  - Sand tint (12%):    rgba(227,195,157,0.12)
+  - Silver divider:     rgba(164,181,196,0.15)
+  - Gold subtle line:   rgba(227,195,157,0.18)
+  - OK green:           #059669
+  - Warn amber:         #D97706
+  
+  FONTS:
+  - Serif (use GoogleFonts.newsreader in Flutter): for numbers, names, greetings, pull quotes
+  - Sans (use GoogleFonts.dmSans in Flutter): for labels, uppercase text, small data
+  
+  SPACING:
+  - Screen horizontal padding: 22px (all sections)
+  - Vertical gap between sections: 14-22px
+  - Card internal padding: 16-20px
+  - Compact tile gap: 6px
+  - Featured tile gap from row: 8px
+-->
+
+<div class="phone-frame">
+  <div class="notch"><div class="notch-pill"></div></div>
+  <div class="body">
+  <div class="grain"></div>
+
+  <!-- =============== TOP BAR =============== -->
+  <div style="padding: 16px 22px 0; display: flex; justify-content: space-between; align-items: center; position: relative;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <!-- SOMi badge: rotated -2.5deg, navy bg, gold text, 6.5px font -->
+      <div style="width: 28px; height: 28px; border-radius: 6px; background: #071739; display: flex; align-items: center; justify-content: center; transform: rotate(-2.5deg);">
+        <span style="font-size: 6.5px; font-weight: 900; color: #E3C39D; letter-spacing: 0.1em;">SOMi</span>
+      </div>
+      <div style="display: flex; flex-direction: column; line-height: 1;">
+        <span style="font-size: 9px; font-weight: 700; color: #071739; letter-spacing: 0.22em; text-transform: uppercase;">Connect</span>
+        <span style="font-size: 8px; color: #A4B5C4; margin-top: 2px; letter-spacing: 0.1em;">№ 047</span>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <!-- Bell with red numbered badge if nudges > 0 -->
+      <div style="position: relative; padding: 5px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#071739" stroke-width="1.5"><path d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <div style="position: absolute; top: 3px; right: 3px; padding: 1px 4px; border-radius: 6px; background: #B43A3A; min-width: 10px; text-align: center;">
+          <span style="font-size: 7px; font-weight: 900; color: #fff; letter-spacing: 0;">3</span>
+        </div>
+      </div>
+      <!-- Avatar circle with first letter of parent name -->
+      <div style="width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid #CDD5DB; background: #fff; display: flex; align-items: center; justify-content: center;">
+        <span style="font-size: 12px; font-weight: 700; color: #071739;">S</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============== DATE LINE + ALERTS PILL =============== -->
+  <div style="padding: 22px 22px 16px; position: relative;">
+    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+      <!-- 16px horizontal hairline -->
+      <div style="width: 16px; height: 1px; background: #071739;"></div>
+      <p style="font-size: 9px; font-weight: 700; color: #071739; margin: 0; letter-spacing: 0.28em; text-transform: uppercase;">Tue · 21 Apr · 8:42 pm</p>
+      <!-- Alerts pill — show only if alerts count > 0 -->
+      <div style="display: flex; align-items: center; gap: 4px; margin-left: auto; padding: 2px 8px; border-radius: 100px; background: rgba(180,58,58,0.08); border: 0.5px solid rgba(180,58,58,0.3);">
+        <div style="width: 5px; height: 5px; border-radius: 50%; background: #B43A3A;"></div>
+        <span style="font-size: 8px; font-weight: 700; color: #B43A3A; letter-spacing: 0.08em; text-transform: uppercase;">3 alerts</span>
+      </div>
+    </div>
+
+    <!-- Greeting: serif 36px, two lines, second line italic in steel color -->
+    <p style="font-family: 'Newsreader', 'Times New Roman', serif; font-size: 36px; font-weight: 400; color: #071739; margin: 0; letter-spacing: -0.035em; line-height: 1.05;">
+      How is Ravi
+      <span style="font-style: italic; color: #4B6382;">doing?</span>
+    </p>
+  </div>
+
+  <!-- =============== HERO CARD (navy gradient) =============== -->
+  <div style="padding: 0 22px 14px;">
+    <div style="border-radius: 20px; padding: 20px 22px; position: relative; overflow: hidden; background: #071739;">
+      
+      <!-- Top inner gold hairline -->
+      <div style="position: absolute; top: 0; left: 22px; right: 22px; height: 1px; background: rgba(227,195,157,0.2);"></div>
+      
+      <!-- MASSIVE GHOST TIME NUMBER — serif 150px at 5% gold opacity, top-right -->
+      <p style="font-family: 'Newsreader', serif; font-size: 150px; font-weight: 400; color: rgba(227,195,157,0.05); margin: 0; letter-spacing: -0.08em; line-height: 0.7; position: absolute; top: 4px; right: -8px;">1<span style="font-size: 74px;">h</span></p>
+      
+      <!-- Top row: label + "STEADY" pill -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; position: relative;">
+        <div>
+          <p style="font-size: 9px; color: rgba(227,195,157,0.6); font-weight: 700; margin: 0 0 3px; text-transform: uppercase; letter-spacing: 0.25em;">Yesterday</p>
+          <p style="font-size: 11px; color: #A4B5C4; margin: 0;">Ravi Kumar · NEET 2027</p>
+        </div>
+        <!-- Status pill — "STEADY" when ok, "WATCH" when 1-2d, "BEHIND" when 3d+ -->
+        <div style="padding: 2.5px 8px; border-radius: 100px; background: rgba(227,195,157,0.12); border: 0.5px solid rgba(227,195,157,0.3);">
+          <span style="font-size: 8.5px; font-weight: 700; color: #E3C39D; letter-spacing: 0.12em; text-transform: uppercase;">Steady</span>
+        </div>
+      </div>
+      
+      <!-- MAIN HERO NUMBER: serif 60px white, "m" is 30px italic silver -->
+      <div style="position: relative; margin-bottom: 18px;">
+        <p style="font-family: 'Newsreader', serif; font-size: 60px; font-weight: 400; color: #fff; margin: 0; line-height: 0.9; letter-spacing: -0.05em;">1h 45<span style="font-size: 30px; color: #A4B5C4; font-style: italic; font-weight: 300;">m</span></p>
+        <!-- Italic subtitle -->
+        <p style="font-size: 11px; color: #4B6382; margin: 8px 0 0; font-style: italic;">across 3 subjects · 3 quizzes · steady</p>
+      </div>
+      
+      <!-- 4 INLINE STATS WITH HAIRLINE DIVIDERS — top border in silver 15% -->
+      <div style="display: flex; padding-top: 14px; border-top: 1px solid rgba(164,181,196,0.15); position: relative;">
+        <div style="flex: 1;">
+          <p style="font-family: 'Newsreader', serif; font-size: 18px; font-weight: 400; color: #E3C39D; margin: 0; line-height: 1;">18</p>
+          <p style="font-size: 7.5px; color: #4B6382; margin: 3px 0 0; text-transform: uppercase; letter-spacing: 0.2em; font-weight: 600;">Streak</p>
+        </div>
+        <div style="width: 0.5px; background: rgba(164,181,196,0.2); margin: 0 8px;"></div>
+        <div style="flex: 1;">
+          <p style="font-family: 'Newsreader', serif; font-size: 18px; font-weight: 400; color: #fff; margin: 0; line-height: 1;">81<span style="font-size: 10px; color: #A4B5C4;">%</span></p>
+          <p style="font-size: 7.5px; color: #4B6382; margin: 3px 0 0; text-transform: uppercase; letter-spacing: 0.2em; font-weight: 600;">Accuracy</p>
+        </div>
+        <div style="width: 0.5px; background: rgba(164,181,196,0.2); margin: 0 8px;"></div>
+        <div style="flex: 1;">
+          <p style="font-family: 'Newsreader', serif; font-size: 18px; font-weight: 400; color: #fff; margin: 0; line-height: 1;">06</p>
+          <p style="font-size: 7.5px; color: #4B6382; margin: 3px 0 0; text-transform: uppercase; letter-spacing: 0.2em; font-weight: 600;">Mastered</p>
+        </div>
+        <div style="width: 0.5px; background: rgba(164,181,196,0.2); margin: 0 8px;"></div>
+        <div style="flex: 1;">
+          <p style="font-family: 'Newsreader', serif; font-size: 18px; font-weight: 400; color: #fff; margin: 0; line-height: 1;">03</p>
+          <p style="font-size: 7.5px; color: #4B6382; margin: 3px 0 0; text-transform: uppercase; letter-spacing: 0.2em; font-weight: 600;">Quizzes</p>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- =============== MAMA PULL QUOTE =============== -->
+  <div style="padding: 4px 22px 18px; position: relative;">
+    <!-- Container: border-radius 14, gradient alarmRedBg → transparent, left border 2px red -->
+    <div style="display: flex; gap: 12px; padding: 12px 14px; border-radius: 14px; background: linear-gradient(90deg, rgba(180,58,58,0.06) 0%, transparent 40%); border-left: 2px solid #B43A3A;">
+      <!-- MAMA tilted sand badge -->
+      <div style="padding: 2.5px 8px; border-radius: 4px; background: #A68868; transform: rotate(-2deg); align-self: flex-start; flex-shrink: 0; margin-top: 2px;">
+        <span style="font-size: 7px; font-weight: 900; color: #fff; letter-spacing: 0.12em;">MAMA</span>
+      </div>
+      <div style="flex: 1;">
+        <!-- Label row: "WATCH · 3 DAYS" in alarm red + right hairline fill -->
+        <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px;">
+          <p style="font-size: 9px; color: #B43A3A; margin: 0; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase;">Watch · 3 days</p>
+          <div style="flex: 1; height: 0.5px; background: rgba(180,58,58,0.25);"></div>
+        </div>
+        <!-- Pull-quote body: serif italic 14px with Tenglish, some words in steel -->
+        <p style="font-family: 'Newsreader', serif; font-size: 14px; font-weight: 400; color: #071739; margin: 0; line-height: 1.4; font-style: italic;">
+          Chemistry class <span style="color: #4B6382;">lo</span> Bohr model chesindi, SOMI <span style="color: #4B6382;">lo</span> Rutherford daggara. Tonight 20 min catch-up.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============== SECTION HEADER =============== -->
+  <div style="padding: 0 22px 10px;">
+    <div style="display: flex; align-items: baseline; justify-content: space-between;">
+      <!-- § SUBJECTS — navy 10px letter-spaced uppercase -->
+      <p style="font-size: 10px; font-weight: 700; color: #4B6382; margin: 0; text-transform: uppercase; letter-spacing: 0.25em;">§ Subjects</p>
+      <p style="font-size: 9px; color: #A4B5C4; margin: 0; letter-spacing: 0.05em;">NEET · 4</p>
+    </div>
+  </div>
+
+  <!-- =============== FEATURED CHEMISTRY TILE (full width, alarm) =============== -->
+  <div style="padding: 0 22px 8px;">
+    <!-- Container: red border, gradient alarmRedBg → sand 4% -->
+    <div style="border-radius: 18px; padding: 16px 18px; position: relative; overflow: hidden; border: 1px solid #B43A3A; background: linear-gradient(135deg, rgba(180,58,58,0.08) 0%, rgba(166,136,104,0.04) 100%);">
+      
+      <!-- TOP ALARM STRIPE: 3px tall, diagonal stripes (red 6px / transparent 6px at 45deg) -->
+      <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: repeating-linear-gradient(45deg, #B43A3A 0 6px, transparent 6px 12px);"></div>
+      
+      <!-- GHOST NUMBER "02" in serif 96px at 8% red opacity top-right -->
+      <p style="font-family: 'Newsreader', serif; font-size: 96px; font-weight: 400; color: rgba(180,58,58,0.08); margin: 0; letter-spacing: -0.08em; line-height: 0.7; position: absolute; top: 6px; right: -4px;">02</p>
+      
+      <!-- Main content row: 3px red rail | text column | big percent -->
+      <div style="display: flex; align-items: flex-start; gap: 14px; position: relative;">
+        <!-- Vertical red rail: 3px wide, 56px min height -->
+        <div style="width: 3px; min-height: 56px; background: #B43A3A; border-radius: 2px; margin-top: 2px;"></div>
+        <div style="flex: 1;">
+          <!-- Title row: "Chemistry" + "3" red serif + "DAYS BEHIND" label -->
+          <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px;">
+            <p style="font-family: 'Newsreader', serif; font-size: 20px; font-weight: 400; color: #071739; margin: 0; letter-spacing: -0.02em;">Chemistry</p>
+            <div style="display: flex; align-items: baseline; gap: 3px;">
+              <span style="font-family: 'Newsreader', serif; font-size: 18px; color: #B43A3A; line-height: 1; font-weight: 500;">3</span>
+              <span style="font-size: 9px; color: #B43A3A; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;">days behind</span>
+            </div>
+          </div>
+          <!-- Description in steel color -->
+          <p style="font-size: 10.5px; color: #4B6382; margin: 0 0 8px; line-height: 1.4;">Physical chem lagging · organic ahead</p>
+          <!-- ACTION PILL: navy pill with gold text + silver caption -->
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="padding: 2px 7px; border-radius: 100px; background: #071739; font-size: 8.5px; font-weight: 700; color: #E3C39D; letter-spacing: 0.06em;">+ 45 min tonight</span>
+            <span style="font-size: 9px; color: #A4B5C4;">estimated catch-up</span>
+          </div>
+        </div>
+        <!-- Right: big percent serif 32px + chapters "14 of 26" small silver -->
+        <div style="text-align: right; position: relative;">
+          <p style="font-family: 'Newsreader', serif; font-size: 32px; font-weight: 400; color: #071739; margin: 0; line-height: 1;">54<span style="font-size: 14px; color: #B43A3A;">%</span></p>
+          <p style="font-size: 8.5px; color: #A4B5C4; margin: 1px 0 0; letter-spacing: 0.06em;">14 of 26</p>
+        </div>
+      </div>
+      
+      <!-- PROGRESS BAR WITH CLASS TICK -->
+      <div style="margin-top: 12px; position: relative;">
+        <!-- Bar: 4px tall, silver bg, red fill at student's percent -->
+        <div style="height: 4px; background: rgba(205,213,219,0.6); border-radius: 2px; overflow: hidden;">
+          <div style="width: 54%; height: 100%; background: #B43A3A; border-radius: 2px;"></div>
+        </div>
+        <!-- Class tick: navy 2px wide, 10px tall, positioned at classPercent (68%) -->
+        <div style="position: absolute; left: 68%; top: -3px; width: 2px; height: 10px; background: #071739; border-radius: 1px;"></div>
+        <!-- Labels row below -->
+        <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+          <span style="font-size: 8px; color: #A4B5C4; letter-spacing: 0.08em;">SOMI (you)</span>
+          <span style="font-size: 8px; color: #071739; letter-spacing: 0.08em; font-weight: 600; margin-right: 28%;">Class at 68% ↑</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============== COMPACT SUBJECT TILES ROW (3 tiles, 3-col grid) =============== -->
+  <div style="padding: 0 22px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+    
+    <!-- Physics (on track — green dot, sand progress bar) -->
+    <div style="border-radius: 13px; padding: 12px 10px 10px; position: relative; overflow: hidden; border: 0.5px solid #CDD5DB; background: #fff;">
+      <!-- Ghost "01" serif 42px at 5% navy -->
+      <p style="font-family: 'Newsreader', serif; font-size: 42px; color: rgba(7,23,57,0.05); margin: 0; line-height: 0.7; position: absolute; top: 3px; right: 3px;">01</p>
+      <!-- State dot: green for on track -->
+      <div style="width: 5px; height: 5px; border-radius: 50%; background: #059669; margin-bottom: 8px;"></div>
+      <p style="font-family: 'Newsreader', serif; font-size: 13px; color: #071739; margin: 0; letter-spacing: -0.01em;">Physics</p>
+      <!-- Chapter ratio small silver -->
+      <p style="font-size: 8.5px; color: #A4B5C4; margin: 1px 0 6px; letter-spacing: 0.04em;">16 of 22</p>
+      <!-- Big percent serif -->
+      <p style="font-family: 'Newsreader', serif; font-size: 22px; color: #071739; margin: 0; line-height: 1;">73<span style="font-size: 10px; color: #A4B5C4;">%</span></p>
+      <!-- Progress bar 2px with class tick at 72% -->
+      <div style="height: 2px; background: #F0E9D9; border-radius: 1px; overflow: hidden; margin-top: 6px; position: relative;">
+        <div style="width: 73%; height: 100%; background: #A68868;"></div>
+        <div style="position: absolute; left: 72%; top: -1px; width: 1.5px; height: 4px; background: #071739;"></div>
+      </div>
+    </div>
+
+    <!-- Botany (on track) -->
+    <div style="border-radius: 13px; padding: 12px 10px 10px; position: relative; overflow: hidden; border: 0.5px solid #CDD5DB; background: #fff;">
+      <p style="font-family: 'Newsreader', serif; font-size: 42px; color: rgba(7,23,57,0.05); margin: 0; line-height: 0.7; position: absolute; top: 3px; right: 3px;">03</p>
+      <div style="width: 5px; height: 5px; border-radius: 50%; background: #059669; margin-bottom: 8px;"></div>
+      <p style="font-family: 'Newsreader', serif; font-size: 13px; color: #071739; margin: 0; letter-spacing: -0.01em;">Botany</p>
+      <p style="font-size: 8.5px; color: #A4B5C4; margin: 1px 0 6px; letter-spacing: 0.04em;">22 of 25</p>
+      <p style="font-family: 'Newsreader', serif; font-size: 22px; color: #071739; margin: 0; line-height: 1;">88<span style="font-size: 10px; color: #A4B5C4;">%</span></p>
+      <div style="height: 2px; background: #F0E9D9; border-radius: 1px; overflow: hidden; margin-top: 6px; position: relative;">
+        <div style="width: 88%; height: 100%; background: #A68868;"></div>
+        <div style="position: absolute; left: 85%; top: -1px; width: 1.5px; height: 4px; background: #071739;"></div>
+      </div>
+    </div>
+
+    <!-- Zoology (1 day behind — amber dot, amber label) -->
+    <div style="border-radius: 13px; padding: 12px 10px 10px; position: relative; overflow: hidden; border: 0.5px solid #CDD5DB; background: #fff;">
+      <p style="font-family: 'Newsreader', serif; font-size: 42px; color: rgba(7,23,57,0.05); margin: 0; line-height: 0.7; position: absolute; top: 3px; right: 3px;">04</p>
+      <div style="width: 5px; height: 5px; border-radius: 50%; background: #D97706; margin-bottom: 8px;"></div>
+      <p style="font-family: 'Newsreader', serif; font-size: 13px; color: #071739; margin: 0; letter-spacing: -0.01em;">Zoology</p>
+      <!-- Chapter position replaced with "1d behind" in amber -->
+      <p style="font-size: 8.5px; color: #D97706; margin: 1px 0 6px; letter-spacing: 0.04em; font-weight: 600;">1d behind</p>
+      <p style="font-family: 'Newsreader', serif; font-size: 22px; color: #071739; margin: 0; line-height: 1;">62<span style="font-size: 10px; color: #A4B5C4;">%</span></p>
+      <div style="height: 2px; background: #F0E9D9; border-radius: 1px; overflow: hidden; margin-top: 6px; position: relative;">
+        <div style="width: 62%; height: 100%; background: #D97706;"></div>
+        <div style="position: absolute; left: 65%; top: -1px; width: 1.5px; height: 4px; background: #071739;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- =============== CLASSROOM MICRO-STATUS ROW =============== -->
+  <!-- Only shown if classroom not logged 1+ days OR past 7pm today with no log -->
+  <!-- Hidden on weekends (show "Weekend" sand card instead) or holidays -->
+  <div style="padding: 14px 22px 12px;">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; background: rgba(217,119,6,0.06); border: 0.5px solid rgba(217,119,6,0.3);">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <p style="font-size: 11px; color: #7C2D12; margin: 0; line-height: 1.3; flex: 1;">
+        <span style="font-weight: 700;">Classroom · 2 days not logged.</span>
+        <span style="color: #4B6382; font-style: italic;">Srinivas, log today's class?</span>
+      </p>
+      <span style="font-size: 18px; color: #D97706;">→</span>
+    </div>
+  </div>
+
+  <!-- spacer for bottom nav -->
+  <div style="height: 70px;"></div>
+
+  <!-- =============== BOTTOM NAV (sticky) =============== -->
+  <div style="position: sticky; bottom: 0; padding: 0 20px 20px; background: linear-gradient(to top, #FBF7EE 60%, rgba(251,247,238,0));">
+    <div style="background: #071739; border-radius: 18px; padding: 5px; display: flex; box-shadow: 0 4px 18px rgba(7,23,57,0.18);">
+      <!-- Active: gold pill w navy text -->
+      <div style="flex: 1; background: #E3C39D; border-radius: 14px; padding: 11px 0; text-align: center;">
+        <span style="font-size: 11px; font-weight: 800; color: #071739; letter-spacing: 0.04em;">Home</span>
+      </div>
+      <!-- Inactive: silver text on navy -->
+      <div style="flex: 1; padding: 11px 0; text-align: center;">
+        <span style="font-size: 11px; font-weight: 600; color: #A4B5C4; letter-spacing: 0.04em;">Progress</span>
+      </div>
+    </div>
+  </div>
+
+  </div>
+</div>
+
+</body>
+</html>
