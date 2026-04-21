@@ -42,3 +42,72 @@ final recentExamsProvider =
       .map((j) => UpcomingExam.fromJson(j as Map<String, dynamic>))
       .toList();
 });
+
+/// Aggregated exam stats for the hero card stats row (missed exam insight types).
+/// Fetches last 4 attended exams for the student and computes last score,
+/// last total, last class rank, class size, and avg % across up to 4 exams.
+class ExamStatsBundle {
+  const ExamStatsBundle({
+    this.lastScore,
+    this.lastTotal,
+    this.lastClassRank,
+    this.classSize,
+    this.avgLast4Percent,
+  });
+
+  final int? lastScore;
+  final int? lastTotal;
+  final int? lastClassRank;
+  final int? classSize;
+  final int? avgLast4Percent;
+}
+
+final examStatsForInsightProvider =
+    FutureProvider.family<ExamStatsBundle, String>((ref, studentId) async {
+  final supabase = Supabase.instance.client;
+
+  final attended = await supabase
+      .from('upcoming_exams')
+      .select()
+      .eq('student_id', studentId)
+      .eq('status', 'attended')
+      .order('scheduled_at', ascending: false)
+      .limit(4);
+
+  final exams = (attended as List)
+      .map((j) => UpcomingExam.fromJson(j as Map<String, dynamic>))
+      .toList();
+
+  int? lastScore;
+  int? lastTotal;
+  int? lastClassRank;
+  int? classSize;
+  int? avgLast4;
+
+  if (exams.isNotEmpty) {
+    final first = exams.first;
+    lastScore = first.score;
+    lastTotal = first.total;
+    lastClassRank = first.classRank;
+    classSize = first.classSize;
+
+    if (exams.length >= 2) {
+      final percents = exams
+          .where((e) => e.score != null && e.total != null && e.total! > 0)
+          .map((e) => (e.score! / e.total!) * 100)
+          .toList();
+      if (percents.isNotEmpty) {
+        avgLast4 =
+            (percents.reduce((a, b) => a + b) / percents.length).round();
+      }
+    }
+  }
+
+  return ExamStatsBundle(
+    lastScore: lastScore,
+    lastTotal: lastTotal,
+    lastClassRank: lastClassRank,
+    classSize: classSize,
+    avgLast4Percent: avgLast4,
+  );
+});

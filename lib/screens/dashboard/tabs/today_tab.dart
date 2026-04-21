@@ -759,7 +759,7 @@ class _DiagnosticGreeting extends StatelessWidget {
 // Navy gradient bg, top stripe, badge pill, headline, stats row by insight type
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _HeroInsightCard extends StatelessWidget {
+class _HeroInsightCard extends ConsumerWidget {
   const _HeroInsightCard({
     required this.insight,
     this.relatedExam,
@@ -793,37 +793,29 @@ class _HeroInsightCard extends StatelessWidget {
                           insight.insightType.contains('prep');
   bool get _isResult   => insight.insightType.contains('result');
 
-  String _avgLast4() {
-    final done = recentExams
-        .where((e) =>
-            e.status == 'completed' &&
-            e.score != null &&
-            e.total != null &&
-            e.total! > 0)
-        .take(4)
-        .toList();
-    if (done.isEmpty) return '—';
-    final avg = done.map((e) => e.score! * 100 ~/ e.total!).reduce((a, b) => a + b) ~/
-        done.length;
-    return '$avg%';
-  }
-
-  List<Widget> _statChildren() {
+  List<Widget> _statChildren(ExamStatsBundle? examStats) {
     if (_isMissed) {
       return [
         _HeroStat(
-          value: relatedExam?.score != null ? '${relatedExam!.score}' : '—',
+          value: examStats?.lastScore != null ? '${examStats!.lastScore}' : '—',
+          suffix: examStats?.lastTotal != null ? '/${examStats!.lastTotal}' : null,
           label: 'Last Exam',
           valueColor: AppTheme.alarmRed,
         ),
         const _StatDivider(),
-        _HeroStat(value: _avgLast4(), label: 'Avg Last 4'),
+        _HeroStat(
+          value: examStats?.avgLast4Percent != null
+              ? '${examStats!.avgLast4Percent}%'
+              : '—',
+          label: 'Avg Last 4',
+        ),
         const _StatDivider(),
         _HeroStat(
-          value: relatedExam?.classRank != null ? '#${relatedExam!.classRank}' : '—',
-          label: relatedExam?.classSize != null
-              ? 'of ${relatedExam!.classSize}'
-              : 'Class Rank',
+          value: examStats?.lastClassRank != null
+              ? '${examStats!.lastClassRank}'
+              : '—',
+          suffix: examStats?.classSize != null ? '/${examStats!.classSize}' : null,
+          label: 'Class Rank',
         ),
       ];
     }
@@ -887,7 +879,16 @@ class _HeroInsightCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // For missed-exam insight types, fetch aggregated stats from attended exams.
+    // While loading or on error, examStats is null → stats show "—" (safe fallback).
+    ExamStatsBundle? examStats;
+    if (_isMissed) {
+      final statsAsync =
+          ref.watch(examStatsForInsightProvider(kDevStudentId));
+      examStats = statsAsync.valueOrNull;
+    }
+
     final badgeLabel  = insight.statusLabel ??
         insight.insightType.replaceAll('_', ' ').toUpperCase();
     final bodyFirst   = _firstLine(insight.body);
@@ -988,7 +989,7 @@ class _HeroInsightCard extends StatelessWidget {
                         top: BorderSide(color: _kSilverDiv15, width: 1)),
                   ),
                   padding: const EdgeInsets.only(top: 14),
-                  child: Row(children: _statChildren()),
+                  child: Row(children: _statChildren(examStats)),
                 ),
               ],
             ),
