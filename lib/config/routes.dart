@@ -8,6 +8,7 @@ import '../screens/auth/splash_screen.dart';
 import '../screens/dashboard/dashboard_shell.dart';
 import '../screens/nudges/nudge_center_screen.dart';
 import '../screens/settings/settings_screen.dart';
+import '../screens/subject/subject_deep_dive.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
@@ -66,6 +67,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/settings',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/subject/:subjectName',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final name = state.pathParameters['subjectName'] ?? '';
+          return SubjectDeepDive(subjectName: name);
+        },
       ),
 
       // ── 2-tab shell: Home (Today) + Progress hub ───────────────────────────

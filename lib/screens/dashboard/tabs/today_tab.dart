@@ -404,9 +404,13 @@ class _TodayTabState extends ConsumerState<TodayTab> {
                   if (problemSubjectData != null)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(22, 0, 22, 8),
-                      child: _FeaturedSubjectTile(
-                        data: problemSubjectData,
-                        ghostNum: problemIdx.toString().padLeft(2, '0'),
+                      child: GestureDetector(
+                        onTap: () => context.push(
+                            '/subject/${problemSubjectData!.name}'),
+                        child: _FeaturedSubjectTile(
+                          data: problemSubjectData,
+                          ghostNum: problemIdx.toString().padLeft(2, '0'),
+                        ),
                       ),
                     ),
 
@@ -1687,9 +1691,12 @@ class _CompactSubjectRow extends StatelessWidget {
         for (int i = 0; i < items.length; i++) ...[
           if (i > 0) const SizedBox(width: 6),
           Expanded(
-            child: _CompactSubjectTile(
-              data: items[i].$1,
-              ghostNum: items[i].$2.toString().padLeft(2, '0'),
+            child: GestureDetector(
+              onTap: () => context.push('/subject/${items[i].$1.name}'),
+              child: _CompactSubjectTile(
+                data: items[i].$1,
+                ghostNum: items[i].$2.toString().padLeft(2, '0'),
+              ),
             ),
           ),
         ],
